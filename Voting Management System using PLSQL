@@ -1,0 +1,429 @@
+--CREATING ADDRESS TABLE
+CREATE TABLE Address(
+  DistrictID integer NOT NULL,
+  Locality VARCHAR(30) NOT NULL,
+  City VARCHAR(30) NOT NULL,
+  State VARCHAR(30) NOT NULL, 
+  Zip VARCHAR(10) NOT NULL,
+  CONSTRAINT PK_District PRIMARY KEY (DistrictID));
+
+--CREATING PARTY_TABLE
+CREATE TABLE Party_Table(
+    DistrictID int not null,
+  PartyID int not null,
+  PartyName varchar(20) not null unique,
+  Symbol Varchar(20) not null unique,
+  PartyLeader varchar(50) not null,
+  CONSTRAINT PK_PARTY PRIMARY KEY (PartyID),
+ foreign key (DistrictID) references Address(DistrictID));
+
+-- Create a table to store voter information
+
+CREATE TABLE Voter_Table(
+  VoterID int NOT NULL , 
+  name VARCHAR(30) NOT NULL,
+  MotherName VARCHAR(30),
+  FatherName VARCHAR(30),
+  Sex char(7) not null,
+  Age int not null,
+  DistrictID integer NOT NULL, 
+  Phone Numeric NOT NULL, 
+  CONSTRAINT PK_VOTER PRIMARY KEY (VoterID),
+  CONSTRAINT FK_DISTRICT FOREIGN KEY (DistrictID) references Address(DistrictID),
+    constraint checkit check(Age>18));
+
+--CREATING CANDIDATE TABLE
+CREATE TABLE Candidate_Table(
+  CandidateID int not null,
+  VoterID int not null,
+  PartyID int not null,
+  ElectionID int not null,
+  DistrictID int not null,
+  CONSTRAINT PK_CANDIDATE PRIMARY KEY (CandidateID),
+  CONSTRAINT FK_VOTER FOREIGN KEY (VoterID) references Voter_Table(VoterID) ON DELETE CASCADE,
+  CONSTRAINT FK_DISTRICT_2 FOREIGN KEY (DistrictID) references Address(DistrictID),
+  CONSTRAINT FK_PARTY FOREIGN KEY (PARTYID) references Party_Table(PartyID));
+  
+-- Create a table to store votes
+CREATE TABLE votes (
+  id NUMBER,
+  voter_id int,
+  candidate_id NUMBER,
+  PRIMARY KEY (voter_id),
+  FOREIGN KEY (voter_id) REFERENCES Voter_Table(VoterID) ON DELETE CASCADE,
+  FOREIGN KEY (candidate_id) REFERENCES Candidate_Table(CandidateID)
+);
+
+
+create table updatecontents(phone int not null,
+    name varchar(78) not null
+    );
+
+--INSERT VALUES INTO ADDRESS
+insert into Address values(234,'Andheri','mumbai','Maharashtra',400059);
+insert into Address values(235,'Hadapsar','Pune','Maharashtra',411013);
+insert into Address values(236,'Malviya','Lucknow','Uttar Pradesh',226004);
+insert into Address values(237,'Depalpur','Indore','Madhya Pradesh',453115);
+
+--INSERT DATA INTO PARTY_TABLE
+insert into Party_Table values(234,11,'BJP','Lotus','Narendra Modi');
+insert into Party_Table values(235,12,'INC','Hand','Rahul Gandhi');
+insert into Party_Table values(236,13,'AAP','Broom','Arvind Kejriwal');
+insert into Party_Table values(237,14,'BSP','Elephant','Mayawati');
+
+
+--INSERT DATA INTO VOTER_TABLE
+insert into Voter_Table values(359146283661,'Akash Singh','Aishwarya','Bhavesh','M',37,234,9623412913);
+insert into Voter_Table values(577379407366,'Dipti Kumar','Gayatri','Dheeraj','F',23,235,9222325956);
+insert into Voter_Table values(782034294038,'Shlok Agarwal','Aparna','Girish','M',33,234,9722768470);
+insert into Voter_Table values(616950285641,'Rashid Khan','Indira','Abhay','M',44,235,9414321457);
+insert into Voter_Table values(736741666818,'Nicole Dias','Juhi','Deepak','F',29,234,9913542379);
+insert into Voter_Table values(569863239187,'Muskan Gupta','Latika','Harmeet','F',30,235,9406269045);
+insert into Voter_Table values(355284559830,'Saima Shaikh','Anushree','Bipin','F',45,234,9251125952);
+insert into Voter_Table values(562945478360,'Aniket Mali','Namrata','Aditya','M',43,234,9353628848);
+insert into Voter_Table values(915990756877,'Priti Krishna','Niharika','Rakesh','F',37,235,9357732303);
+insert into Voter_Table values(999670853995,'Bhavna Wadhwani','Arpita','Mehul','F',34,234,9600223943);
+insert into Voter_Table values(390490514118,'Shrishti Shetty','Pallavi','Mukesh','F',28,235,9661640359);
+insert into Voter_Table values(621986593521,'Harsh Chougle','Rashmi','Akshat','M',30,234,9978862736);
+insert into Voter_Table values(868335925077,'Rehmat Khan','Saloni','Nitish','M',39,235,9673536403);
+insert into Voter_Table values(617934838162,'Joey Dsouza','Priyanka','Prakash','M',40,234,9533089508);
+insert into Voter_Table values(819988659927,'Celina Dias','Eva','Thomas','F',46,235,9356542209);
+insert into Voter_Table values(530785108738,'Binita Soni','Anjali','Aniket','F',29,234,9472486996);
+insert into Voter_Table values(503993408931,'Aasim Moulvi','Jasbir','Rahul','M',49,235,9995661892);
+insert into Voter_Table values(441354025058,'Vinit Rajput','Sneha','Randhir','M',48,234,9254284523);
+
+
+
+-- Insert some sample candidates
+insert into Candidate_Table values(1034, 390490514118 ,11,201,234);
+insert into Candidate_Table values(1036, 868335925077 ,13,201,236);
+insert into Candidate_Table values(1035, 617934838162 ,12,201,235);
+insert into Candidate_Table values(1040, 616950285641 ,14,201,237);
+
+--CREATING SEQUENCE FOR VOTES TABLE
+CREATE SEQUENCE votes_seq START WITH 1 INCREMENT BY 1;
+
+--All candidate full details
+declare
+    c_id Candidate_Table.CandidateID%type;
+c_name Party_Table.PartyName%type;
+p_id Party_Table.PartyID%type;
+c_symbol Party_Table.Symbol%type;
+c_leader Party_Table.PartyLeader%type;
+c_districtid Candidate_Table.DistrictID%type;
+c_electionid Candidate_Table.ElectionID%type;
+c_locality Address.Locality%type;
+c_city Address.City%type;
+c_state Address.State%type;
+c_zip Address.Zip%type;
+cursor c1 is
+    select c.CandidateID ,p.PartyID,c.ElectionID,c.DistrictID,p.PartyName,p.symbol,p.PartyLeader,a.Locality,a.city,a.state,a.zip from candidate_table c,party_table p,Address a where c.DistrictID=p.DistrictID and p.DistrictID=a.DistrictID;
+
+begin
+    open c1;
+loop
+    fetch c1 into c_id ,p_id,c_electionid,c_districtid,c_name,c_symbol,c_leader,c_locality,c_city,c_state,c_zip;
+exit when c1%NOTFOUND;
+dbms_output.put_line('c_id'||'|'||'p_id  '||'|'||'c_electionid'||'|'||'c_districtid'||'|'|| 'c_name'||'|'||'c_symbol'||'|'||'c_leader'||'     |'||'c_locality'||' | '||'c_city'||' | '||'c_state'||'   |  '||'c_zip');
+dbms_output.put_line(c_id||'|  '||p_id||'  |         '||c_electionid||'|       '||c_districtid||'  |'|| c_name||'   |'||c_symbol||'   |'||c_leader||' |'||c_locality||'  |'||c_city||'  |'||c_state||'|'||c_zip);
+
+end loop;
+close c1;
+end;
+
+--address of particular candidate by districtid
+declare
+    c_districtid Address.DistrictID%type;
+c_locality Address.Locality%type;
+c_city Address.City%type;
+c_state Address.State%type;
+c_zip Address.Zip%type;
+districtid number:=234;
+cursor c1(c_districtid number) is
+    select Locality,city,state,zip,districtid from Address where DistrictID=c_districtid;
+    REC1 c1%ROWTYPE;
+begin
+    open c1(districtid);
+loop
+    fetch c1 into c_locality,c_city,c_state,c_zip,c_districtid;
+exit when c1%NOTFOUND;
+dbms_output.put_line('c_locality'||' | '||'c_city'||' | '||'c_state'||'   |  '||'c_zip'||' | '||'c_districtid');
+dbms_output.put_line(c_locality||'  |'||c_city||'    |'||c_state||' |'||c_zip||'  |'||c_districtid);
+end loop;
+IF c1%NOTFOUND AND c1%ROWCOUNT=0 THEN
+    RAISE NO_DATA_FOUND;
+END IF;
+EXCEPTION
+    when NO_DATA_FOUND  THEN
+    RAISE_APPLICATION_ERROR(-20001, 'ERROR: DATA INCORRECT');
+
+close c1;
+end;
+
+--particular voter details
+declare
+v_id  voter_table.VoterID%type; 
+ v_name  voter_table.name%type;
+  v_mname voter_table.MotherName%type;
+  v_fname voter_table.FatherName%type;
+  v_gen voter_table.Sex%type ;
+  v_age voter_table.Age%type;
+  v_disid voter_table.DistrictID%type; 
+  v_phonenum voter_table.Phone%type;
+vnumber number:=503993408931;
+cursor c1(v_id number) is
+  select VoterID,name,MotherName,FatherName,Sex,Age,DistrictID,Phone from voter_table where VoterID=v_id;
+begin
+    
+    open c1(vnumber);
+loop
+    fetch c1 into v_id,v_name,v_mname,v_fname,v_gen,v_age,v_disid,v_phonenum;
+exit when c1%NOTFOUND;
+dbms_output.put_line('v_id'||'        |'||'v_name'||'     |'||'v_mname'||' |'||'v_fname'||'|'||'v_gen'||'  |'||'v_age'||'|'||'v_disid'||'|'||'v_phonenum');
+dbms_output.put_line(v_id||'|'||v_name||'|'||v_mname||'|'||v_fname||'  |'||v_gen||'|'||v_age||'   |'||v_disid||'    |'||v_phonenum);
+end loop;
+IF C1%NOTFOUND AND c1%ROWCOUNT=0 THEN 
+    RAISE NO_DATA_FOUND;
+END IF;
+EXCEPTION
+    when NO_DATA_FOUND  THEN
+    RAISE_APPLICATION_ERROR(-20001, 'ERROR: DATA INCORRECT');
+close c1;
+end;
+
+--View PartyDetail with respective district id
+Create or replace procedure partydetail(districtid1 number) is 
+    s number;
+    begin
+    select districtid into s from address where districtid=districtid1;
+    for disp in(select p.partyid,p.partyname,p.symbol,p.partyleader,p.districtid,a.locality,a.zip,a.state,a.city from address a,party_table p where p.districtid=a.districtid and p.districtid=districtid1)
+    loop
+    dbms_output.put_line('Party ID: '||disp.partyid);
+ dbms_output.put_line('Party Name: '||disp.partyname);
+ dbms_output.put_line('Party Symbol: '||disp.symbol);
+ dbms_output.put_line('Party Leader: '||disp.partyleader);
+ dbms_output.put_line('Party DistrictID: '||disp.districtid);
+ dbms_output.put_line('Party ZIP: '||disp.zip);
+ dbms_output.put_line('Party State: '||disp.state);
+ dbms_output.put_line('Party City: '||disp.city);
+ dbms_output.put_line('Party Locality: '||disp.locality);
+ dbms_output.put_line('-----------------------------------');
+end loop;
+ EXCEPTION
+    when NO_DATA_FOUND  THEN
+    RAISE_APPLICATION_ERROR(-20001, 'ERROR: DATA INCORRECT');
+WHEN OTHERS THEN
+    RAISE_APPLICATION_ERROR(-20002,'ERROR: UNEXPECTED ERROR');
+ end;
+
+declare
+    districtid number:=234;
+begin
+    partydetail(districtid);
+end;
+
+--Trigger for Insert into votes table
+CREATE TRIGGER insertvotetrigg Before insert ON votes for each row
+BEGIN
+dbms_output.put_line('Data Inserted succesfully in votes table');
+END;
+ 
+-- Allow a voter to cast a vote for a candidate
+CREATE or replace PROCEDURE cast_vote(p_voter_id number, p_candidate_id NUMBER) AS
+  v_voter_name Voter_Table.name%TYPE;
+  v_candidate_name Party_Table.PartyLeader%TYPE;
+BEGIN
+  -- Check if the voter exists
+  SELECT name INTO v_voter_name FROM Voter_Table WHERE VoterID = p_voter_id; 
+  SELECT PartyLeader into v_candidate_name FROM Party_Table p inner join Candidate_Table c on p.PartyID=c.PartyID WHERE  c.CandidateID= p_candidate_id;
+--Insert the votes
+ INSERT INTO votes(id,voter_id,candidate_id) VALUES (votes_seq.nextval, p_voter_id, p_candidate_id);
+EXCEPTION
+    when NO_DATA_FOUND  THEN
+    RAISE_APPLICATION_ERROR(-20001, 'ERROR: DATA INCORRECT');
+WHEN OTHERS THEN
+    RAISE_APPLICATION_ERROR(-20002,'ERROR: UNEXPECTED ERROR');
+END;
+
+declare
+    voter_id number:=999670853995;
+candidate_id number:=1036;
+
+BEGIN 
+    cast_vote(voter_id,candidate_id);
+dbms_output.put_line('vote casted');
+END;
+
+--view casted votes
+create or replace procedure caste_votdisplay
+    is
+begin
+    for display in(Select ID,VOTER_ID,CANDIDATE_ID FROM VOTES)
+    LOOP
+DBMS_OUTPUT.PUT_LINE('ID: ' || display.ID);
+    DBMS_OUTPUT.PUT_LINE('Voter_ID: ' || display.VOTER_ID);
+    DBMS_OUTPUT.PUT_LINE('CANDIDATE_ID: ' || display.CANDIDATE_ID);
+    DBMS_OUTPUT.PUT_LINE('----------------------------------------------------');
+END LOOP;
+end;
+
+
+begin
+    caste_votdisplay;
+end;
+
+
+--Update name and phone number of voter
+CREATE TRIGGER updatetrigg Before update ON Voter_Table for each row
+BEGIN
+    insert into updatecontents(phone,name) values(:new.phone,:new.name);
+dbms_output.put_line('Updated succesfully');
+END;
+
+--Update Name and phone number procedure
+create or replace procedure updateprocedur(newname varchar,newphonenum number,voter_id number)as
+    s number;
+    begin
+    SELECT VoterID into s from Voter_table where VoterID=voter_id;
+update Voter_Table set name= newname,phone=newphonenum where VoterID=voter_id;
+EXCEPTION
+    when NO_DATA_FOUND  THEN
+    RAISE_APPLICATION_ERROR(-20001, 'ERROR: DATA INCORRECT');
+WHEN OTHERS THEN
+    RAISE_APPLICATION_ERROR(-20002,'ERROR: UNEXPECTED ERROR');
+end;
+
+declare
+    name varchar(78):='Raghav sharma';
+phone number:=9864785546;
+voter_id number:=503993408931;
+begin
+    updateprocedur(name,phone,voter_id);
+end;
+
+
+--view updatecontents
+create or replace procedure Viewupdate
+    is
+    begin
+    for disp in(select * from updatecontents)
+    loop
+    DBMS_OUTPUT.PUT_LINE('Name: '||disp.name);
+    DBMS_OUTPUT.PUT_LINE('Phone: '||disp.phone);
+DBMS_OUTPUT.PUT_LINE('---------------------------');
+end loop;
+end;
+
+begin
+    Viewupdate;
+end;
+
+
+
+--Delete contents of Particular Voter if voter died-->TRIGGER
+
+create trigger deletevotername before delete on Voter_table for each row
+    begin
+dbms_output.put_line('RECORD DELETED SUCCESSFULLY');
+    DBMS_OUTPUT.PUT_LINE('------------------------------');
+DBMS_OUTPUT.PUT_LINE(' NAME: '||:old.name);
+DBMS_OUTPUT.PUT_LINE(' MOTHERNAME: '||:old.mothername);
+DBMS_OUTPUT.PUT_LINE('FATHERNAME: '||:old.fathername);
+DBMS_OUTPUT.PUT_LINE('SEX: '||:old.sex);
+DBMS_OUTPUT.PUT_LINE('AGE: '||:old.age);
+DBMS_OUTPUT.PUT_LINE('DISTRICTID: '||:old.districtid);
+DBMS_OUTPUT.PUT_LINE('PHONE: '||:old.phone);
+DBMS_OUTPUT.PUT_LINE('---------------------------------');
+END;
+
+--DELETE CONTENTS FROM VOTER TABLE-->PROCEDURE
+CREATE or replace FUNCTION DELETEFUN(VOTER_id NUMBER)RETURN NUMBER
+    AS
+s NUMBER;
+    BEGIN
+        select voterid into s from voter_table WHERE VOTERID=VOTER_ID;
+
+    DELETE FROM Voter_Table where VoterID=VOTER_id;
+RETURN s;
+EXCEPTION
+    when NO_DATA_FOUND  THEN
+    RAISE_APPLICATION_ERROR(-20001, 'ERROR: DATA INCORRECT');
+WHEN OTHERS THEN
+    RAISE_APPLICATION_ERROR(-20002,'ERROR: UNEXPECTED ERROR');
+
+END;
+
+DECLARE
+    V_NUM NUMBER:=503993408931;
+S NUMBER;
+BEGIN
+    S:=DELETEFUN(V_NUM);
+END;
+
+-- Get the total number of votes for a candidate
+CREATE or replace FUNCTION get_vote_count(p_candidate_id NUMBER) RETURN NUMBER AS
+  v_vote_count NUMBER;
+s number;
+BEGIN
+    SELECT CANDIDATE_ID into s FROM VOTES WHERE candidate_id=p_candidate_id;
+  SELECT COUNT(*) INTO v_vote_count FROM votes WHERE candidate_id = p_candidate_id;
+  RETURN v_vote_count;
+EXCEPTION
+    when NO_DATA_FOUND  THEN
+    RAISE_APPLICATION_ERROR(-20001, 'ERROR: NO DATA FOUND');
+WHEN OTHERS THEN
+    RAISE_APPLICATION_ERROR(-20002,'ERROR: UNEXPECTED ERROR');
+END;
+
+DECLARE
+    P_CANDIDATE_ID NUMBER:=1034;
+BEGIN
+    
+    DBMS_OUTPUT.PUT_LINE('Number of votes candidate get: '|| get_vote_count(P_CANDIDATE_ID));
+END;
+
+--all votes count
+declare
+    v_id votes.voter_id%type;
+c_id votes.candidate_id%type;
+vcount number;
+cursor c2 is
+    select count(*),candidate_id from votes GROUP BY CANDIDATE_ID;
+begin
+    open c2;
+loop
+    fetch c2 into vcount,c_id;
+exit when c2%NOTFOUND;
+dbms_output.put_line('c_id'||' | '||'vcount');
+dbms_output.put_line(c_id||'  |'||vcount);
+end loop;
+IF c2%NOTFOUND AND c2%ROWCOUNT=0 THEN 
+    RAISE NO_DATA_FOUND;
+END IF;
+EXCEPTION
+    when NO_DATA_FOUND  THEN
+    RAISE_APPLICATION_ERROR(-20001, 'ERROR: NO DATA FOUND');
+close c2;
+end;
+
+
+-- Get the name of the candidate with the most votes
+CREATE or replace FUNCTION get_winner RETURN VARCHAR2 AS
+  v_candidate_name VARCHAR2(50);
+BEGIN
+  SELECT p.PartyLeader INTO v_candidate_name FROM Party_Table p inner join Candidate_table c on p.PartyID=c.PartyID WHERE c.CandidateID = (
+    SELECT candidate_id FROM (
+      SELECT candidate_id, COUNT(*) AS vote_count
+      FROM votes
+      GROUP BY candidate_id
+      ORDER BY vote_count DESC
+    )
+    WHERE ROWNUM = 1
+  );
+
+  RETURN v_candidate_name;
+END;
+
+BEGIN
+        DBMS_OUTPUT.PUT_LINE(get_winner());
+END;
